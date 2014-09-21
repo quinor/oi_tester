@@ -2,16 +2,22 @@ import os
 import pp
 import glob
 import threading
+import math
 from pp_workers import *
 
 class Tester (object):
   """
   OI tester class. Automatically generates tests and checks program correctness.
+  It uses 
   """
   def __init__ (self, name, jobs_num=10, timeout=10, checker="diff", save_errors=True):
     """
     Arguments:
-      name          -- name of tested program, usually 3-letter task code
+      name          -- name of tested program, usually 3-letter task code. You
+                       have to provide executable program for testing with [task_code]
+                       as name. Also note, that if you use generate_correct_answers,
+                       then you have to provide program for generating answers and
+                       name it [task_code]_wzor.
       jobs_num      -- number of threads
       timeout       -- timeout for tested program
       checker       -- optional custom checker, launched: ./checker file.out file.test file.in
@@ -52,6 +58,7 @@ class Tester (object):
     num=0
     self.__num_done=0
     self.__tests_quanity=sum(e[0] for e in self.__cases)
+    self.__zeroes=int(math.ceil(math.log10(self.__tests_quanity)))
     os.system("mkdir {}".format(self.__path))
     filename=self.__path+"/"+self.__name+"{}{}"
     for quanity, func, params, prefix in self.__cases:
@@ -81,6 +88,7 @@ class Tester (object):
     testfiles=[x[:-3] for x in glob.glob(self.__path+"/*.in")]
     self.__num_done=0
     self.__tests_quanity=len(testfiles)
+    self.__zeroes=int(math.ceil(math.log10(self.__tests_quanity)))
     for filename in testfiles:
       self.__server.submit(
                             gen_correct,
@@ -109,6 +117,7 @@ class Tester (object):
     self.__correct=0
     self.__num_done=0
     self.__tests_quanity=len(testfiles)
+    self.__zeroes=int(math.ceil(math.log10(self.__tests_quanity)))
     for filename in testfiles:
       self.__server.submit(
                             test_case,
@@ -121,7 +130,7 @@ class Tester (object):
                             callback=self.__tested
                           )
     self.__server.wait()
-    print self.__done_info(self.__correct, self.__tests_quanity)+" of correct answers"
+    print (self.__done_info(self.__correct, self.__tests_quanity)+" of correct answers")
   
   def __tested (self, result):
     self.__lock.acquire()
@@ -129,20 +138,20 @@ class Tester (object):
     self.__num_done+=1
     f=self.__done_info(self.__num_done, self.__tests_quanity) + filename
     if code == 0:
-      print "\033[1;32mOK\033[0m        " + f
+      print ("\033[1;32mOK\033[0m        " + f)
       self.__correct+=1
     elif code == 1:
-      print "\033[1;31mWA\033[0m        " + f
+      print ("\033[1;31mWA\033[0m        " + f)
       self.__error_file_object.write("WA  " + f+"\n")
       if self.__save_errors:
         os.system("cp {:s}.* {:s}".format(filename, self.__error_folder))
     elif code == 2:
-      print "\033[1;33mTLE\033[0m       " + f
+      print ("\033[1;33mTLE\033[0m       " + f)
       self.__error_file_object.write("TLE " + f+"\n")
       if self.__save_errors:
         os.system("cp {:s}.* {:s}".format(filename, self.__errorfolder))
     else:
-      print "\033[1;33mRE\033[0m        " + f + "(code \033[1;37m{0}\033[0m)".format(code)
+      print ("\033[1;33mRE\033[0m        " + f + "(code \033[1;37m{0}\033[0m)".format(code))
     self.__lock.release()
   
   def make_package (self):
