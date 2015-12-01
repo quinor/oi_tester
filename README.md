@@ -16,3 +16,4 @@ lightweight personal testing toolkit for programming/algorithmic tasks.
    with BAR task from XXI polish OI is in the "example" directory. Documentation
    is accessible via help(tester.Tester) in python2 enviroment.
 5. Run your python script and enjoy testing!
+6. If you have any questions please ask me somehow - eg. by github issues. I'll try to fix everything :)
